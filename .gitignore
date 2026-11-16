@@ -1,0 +1,25 @@
+# 本地配置与密钥
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+dist/
+
+# Java
+target/
+*.class
+
+# IDE
+.idea/
+.vscode/
+
+# 模型文件（体积大，本地保留，不进仓库）
+models/
+*.log
