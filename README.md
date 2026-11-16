@@ -77,7 +77,10 @@
 │   ├── ticket-backend/     # Spring Boot 业务后端（:8080）
 │   ├── ticket-frontend/    # Vue 3 前端（:5173）
 │   └── ticket-agent/       # FastAPI AI Agent（:8000）
+├── scripts/                # 一键启动/关闭脚本
 ├── sql/                    # 数据库初始化脚本
+├── 一键启动.bat
+├── 一键关闭.bat
 └── README.md
 ```
 
@@ -90,6 +93,29 @@
 - Docker Desktop + WSL2（Windows 下运行 Milvus 必需）
 - Milvus 镜像 `milvusdb/milvus:v2.6.7`
 - 可访问的 OpenAI 兼容大模型服务（默认 DeepSeek）
+
+## 一键启动 / 关闭（Windows）
+
+项目根目录提供两个批处理文件，适合本地开发时快速启动/停止：
+
+| 文件 | 作用 |
+|---|---|
+| `一键启动.bat` | 检查 MySQL → 启动 Docker Desktop（如未运行）→ 启动 Milvus → 启动 Agent → 后端 → 前端，并打开浏览器 |
+| `一键关闭.bat` | 停止前端、后端、Agent 和 Milvus 容器；MySQL 与 Docker Desktop 保持运行 |
+
+使用前确认：
+
+- MySQL 已安装并已运行；
+- Docker Desktop 已安装，且已创建 `milvus-standalone` 容器；
+- Agent 的 `.venv` 已创建（脚本不会自动创建 Python 虚拟环境）；
+- 首次启动时如果后端 jar 不存在，脚本会尝试执行 `mvn -DskipTests package`；
+- 前端 `node_modules` 不存在时，脚本会尝试执行 `npm install`。
+
+运行日志和 PID 文件会写入 `.run/`（已加入 `.gitignore`）。如果 5173 / 8080 / 8000 被其他程序占用，脚本会提示并跳过；先关闭占用进程，或运行 `一键关闭.bat` 后再启动。
+
+> Docker Desktop 的默认查找路径是 `C:\Program Files\Docker\Docker\Docker Desktop.exe`，另外兼容本机的 `G:\develop2\Docker\Docker Desktop.exe`。如果安装在其他位置，请修改 [scripts/start-all.ps1](scripts/start-all.ps1) 里的 `$dockerDesktopCandidates`。
+>
+> 本机实测：`docker stop` 后 Milvus 可能以 exit 134 退出，但数据卷保留，集合数据不受影响；下一次 `一键启动.bat` 会自动拉起并等待健康检查。若启动失败，脚本会打印 Milvus 最近日志。
 
 ## 快速开始
 
