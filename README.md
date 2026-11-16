@@ -11,6 +11,20 @@
 - **登录鉴权**：Sa-Token 无状态令牌；Agent 通过内部令牌访问后端
 - **向量检索**：Milvus COSINE 相似度检索，Embedding 使用本地 `all-MiniLM-L6-v2`（384 维）
 
+## 界面预览
+
+| 登录 | 工单列表 |
+|---|---|
+| ![登录页](docs/screenshots/login.png) | ![工单列表](docs/screenshots/ticket-list.png) |
+
+| 工单详情 | AI 助手 |
+|---|---|
+| ![工单详情](docs/screenshots/ticket-detail.png) | ![AI 助手](docs/screenshots/chat.png) |
+
+![知识库管理](docs/screenshots/knowledge.png)
+
+> 截图来自本地运行环境，测试账号见下方「访问系统」。
+
 ## 技术栈
 
 | 层 | 技术 |

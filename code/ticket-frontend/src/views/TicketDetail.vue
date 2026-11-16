@@ -1,45 +1,53 @@
-<!-- 工单详情页 —— 顶部返回 + 描述表 + AI 建议 + 相似工单/知识库 -->
+<!-- 工单详情页 —— 状态流转 + 基本信息 + AI 建议 + 相似工单/知识库 -->
 <template>
   <el-card v-loading="loading">
     <div v-if="ticket">
       <!-- 顶部返回行 -->
-      <el-page-header  @back="$router.back()" style="margin-bottom: 16px">
+      <el-page-header @back="$router.back()" style="margin-bottom: 16px">
         <template #content>
           <span style="font-size: 18px; font-weight: 600">工单 #{{ ticket.id }} - {{ ticket.title }}</span>
         </template>
       </el-page-header>
 
+      <!-- 状态流转 -->
+      <el-steps :active="statusStep" finish-status="success" align-center class="status-steps">
+        <el-step title="待处理" />
+        <el-step title="处理中" />
+        <el-step title="已解决" />
+        <el-step title="已关闭" />
+      </el-steps>
+
       <!-- 基本信息：两列带边框描述表 -->
       <el-descriptions :column="2" border>
         <el-descriptions-item label="故障类型">
-          <el-tag>{{ ticket.faultType || '未识别' }}</el-tag>
+          <el-tag>{{ formatFaultType(ticket.faultType) }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="状态">
-          <!-- 管理员视角：直接渲染状态下拉框 -->
-          <el-select v-if="isAdmin" v-model="ticket.status" @change="onSave">
+          <!-- 管理员 / 运维工程师可更新状态 -->
+          <el-select v-if="canHandle" v-model="ticket.status" @change="onSave">
             <el-option label="待处理" value="PENDING" />
             <el-option label="处理中" value="PROCESSING" />
             <el-option label="已解决" value="RESOLVED" />
             <el-option label="已关闭" value="CLOSED" />
           </el-select>
-          <!-- 非管理员视角：只读显示 -->
+          <!-- 其他角色只读 -->
           <span v-else>{{ statusLabel[ticket.status] }}</span>
         </el-descriptions-item>
         <el-descriptions-item label="提交人ID">{{ ticket.submitterId }}</el-descriptions-item>
-        <el-descriptions-item label="提交时间">{{ ticket.createTime }}</el-descriptions-item>
+        <el-descriptions-item label="提交时间">{{ formatTime(ticket.createTime) }}</el-descriptions-item>
         <el-descriptions-item label="故障描述" :span="2">
           {{ ticket.description }}
         </el-descriptions-item>
         <el-descriptions-item label="处理结果" :span="2">
           <el-input
-            v-if="isAdmin"
+            v-if="canHandle"
             v-model="resolution"
             type="textarea"
             :rows="3"
             placeholder="请填写处理结果"
             @blur="onSave"
           />
-          <!-- 非管理员视角：只读显示 -->
+          <!-- 其他角色只读 -->
           <span v-else>{{ resolution }}</span>
         </el-descriptions-item>
       </el-descriptions>
@@ -47,14 +55,13 @@
       <el-divider />
 
       <!-- AI 初步建议 -->
-      <h3>🤖 AI 初步建议</h3>
-      <el-alert
-        v-if="ticket.aiSuggestion"
-        :title="ticket.aiSuggestion"
-        type="info"
-        :closable="false"
-        show-icon
-      />
+      <el-card class="ai-card" shadow="never">
+        <div class="ai-card-head">
+          <span class="ai-badge">AI</span>
+          <span>初步排查建议</span>
+        </div>
+        <div class="ai-card-body">{{ cleanSuggestion(ticket.aiSuggestion) }}</div>
+      </el-card>
 
       <!-- 相似历史工单 -->
       <h3 style="margin-top: 24px">📎 相似历史工单</h3>
@@ -67,7 +74,7 @@
         >
           <div style="display: flex; justify-content: space-between; align-items: center">
             <div style="font-weight: 600">#{{ s.id }} {{ s.title }}</div>
-            <el-tag size="small" type="warning">相似度 {{ s.score }}</el-tag>
+            <el-tag size="small" type="warning">相似度 {{ formatScore(s.score) }}</el-tag>
           </div>
           <div style="color: #666; margin-top: 6px; line-height: 1.6">{{ s.content }}</div>
         </el-card>
@@ -85,7 +92,7 @@
         >
           <div style="display: flex; justify-content: space-between; align-items: center">
             <div style="font-weight: 600">{{ s.title }}</div>
-            <el-tag size="small" type="success">相似度 {{ s.score }}</el-tag>
+            <el-tag size="small" type="success">相似度 {{ formatScore(s.score) }}</el-tag>
           </div>
           <div style="color: #666; margin-top: 6px; line-height: 1.6; white-space: pre-line">{{ s.content }}</div>
         </el-card>
@@ -100,17 +107,16 @@ import { computed, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { getTicket, updateTicket } from '@/api/ticket'
+import { cleanSuggestion, formatFaultType, formatScore, formatTime } from '@/utils/format'
 
 const route = useRoute()
 
-// 状态/分类 中文映射
+// 状态中文映射
 const statusLabel = { PENDING: '待处理', PROCESSING: '处理中', RESOLVED: '已解决', CLOSED: '已关闭' }
-const statusTag = { PENDING: 'warning', PROCESSING: 'primary', RESOLVED: 'success', CLOSED: 'info' }
-const categoryLabel = { network: '网络', hardware: '硬件', software: '软件', account: '账号' }
 
-// 当前登录用户（用于控制管理员操作）
+// 当前登录用户：管理员和运维工程师可以处理工单
 const user = JSON.parse(localStorage.getItem('ticket_user') || '{}')
-const isAdmin = computed(() => user?.role === 'admin')
+const canHandle = computed(() => ['admin', 'engineer'].includes(user?.role))
 
 // 工单详情，由接口加载
 const ticket = ref({})
@@ -119,6 +125,14 @@ const ticket = ref({})
 const resolution = ref('')
 
 const loading = ref(false)
+
+// 状态步骤条位置
+const statusStep = computed(() => ({
+  PENDING: 0,
+  PROCESSING: 1,
+  RESOLVED: 2,
+  CLOSED: 3,
+}[ticket.value.status] ?? 0))
 
 // 解析相似历史工单（后端返回 JSON 字符串）
 const similarTickets = computed(() => {
@@ -167,3 +181,17 @@ const load = async () => {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.status-steps {
+  margin: 4px 0 24px;
+  padding: 18px 8px;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.status-steps :deep(.el-step__title) {
+  font-size: 13px;
+}
+</style>

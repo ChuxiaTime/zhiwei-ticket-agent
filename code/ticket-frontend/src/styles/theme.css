@@ -1,0 +1,78 @@
+:root {
+  --brand-ink: #0f172a;
+  --brand-indigo: #312e81;
+  --brand-primary: #4f46e5;
+  --brand-teal: #14b8a6;
+  --page-bg: #f5f7fb;
+  --text-main: #1f2937;
+  --text-muted: #64748b;
+  --border-soft: #e5e7eb;
+  --shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.08);
+
+  --el-color-primary: #4f46e5;
+  --el-color-primary-light-3: #818cf8;
+  --el-color-primary-light-5: #a5b4fc;
+  --el-color-primary-light-7: #c7d2fe;
+  --el-color-primary-light-8: #e0e7ff;
+  --el-color-primary-light-9: #eef2ff;
+  --el-color-primary-dark-2: #4338ca;
+  --el-border-radius-base: 10px;
+  --el-font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text-main);
+  font-family: var(--el-font-family);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.el-card {
+  border-radius: 14px;
+  border-color: var(--border-soft);
+}
+
+.ai-card {
+  border: 1px solid #c7d2fe;
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 48%, #ecfeff 100%);
+}
+
+.ai-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--brand-indigo);
+}
+
+.ai-badge {
+  padding: 2px 9px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-teal));
+}
+
+.ai-card-body {
+  margin-top: 12px;
+  color: #334155;
+  line-height: 1.85;
+  white-space: pre-line;
+}
+
+.page-subtitle {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}

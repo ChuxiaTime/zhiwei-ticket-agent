@@ -32,9 +32,13 @@
     <el-table :data="list" v-loading="loading" border>
       <el-table-column prop="id" label="ID" width="70" />
       <el-table-column prop="title" label="标题" />
-      <el-table-column prop="category" label="分类" width="100" />
+      <el-table-column label="分类" width="100">
+        <template #default="{ row }">{{ row.category ? formatFaultType(row.category) : '-' }}</template>
+      </el-table-column>
       <el-table-column prop="content" label="内容" show-overflow-tooltip />
-      <el-table-column prop="createTime" label="创建时间" width="180" />
+      <el-table-column label="创建时间" width="180">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
       <el-table-column label="操作" width="100">
         <template #default="{ row }">
           <el-popconfirm title="确定删除？" @confirm="onDelete(row.id)">
@@ -52,6 +56,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { addKnowledge, listKnowledge, deleteKnowledge } from '@/api/knowledge'
+import { formatFaultType, formatTime } from '@/utils/format'
 
 const form = ref({ title: '', content: '', category: '' })
 const list = ref([])

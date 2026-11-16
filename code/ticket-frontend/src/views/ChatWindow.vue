@@ -11,22 +11,6 @@
 
     <!-- 对话区 -->
     <div ref="scrollRef" class="chat-body">
-      <!-- 快捷能力卡片（只在欢迎语后展示一次） -->
-      <div v-if="messages.length === 1" class="quick-actions">
-        <div
-          v-for="(q, i) in quickActions"
-          :key="i"
-          class="quick-card"
-          :style="{ borderColor: q.color }"
-          @click="fillExample(q.example)">
-          <div class="quick-emoji" :style="{ background: q.color }">{{ q.emoji }}</div>
-          <div class="quick-body">
-            <div class="quick-name" :style="{ color: q.color }">{{ q.name }}</div>
-            <div class="quick-example">{{ q.example }}</div>
-          </div>
-        </div>
-      </div>
-
       <div v-for="(m, idx) in messages" :key="idx" :class="['msg', m.role]">
         <div class="bubble">
           <!-- 用户气泡：只显示文字 -->
@@ -80,6 +64,22 @@
                     <el-divider style="margin: 8px 0"><span style="color:#999;font-size:12px">AI 回复</span></el-divider>
                     {{ m.content }}
                 </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 快捷能力卡片（只在欢迎语后展示一次） -->
+      <div v-if="messages.length === 1" class="quick-actions">
+        <div
+          v-for="(q, i) in quickActions"
+          :key="i"
+          class="quick-card"
+          :style="{ borderColor: q.color }"
+          @click="fillExample(q.example)">
+          <div class="quick-emoji" :style="{ background: q.color }">{{ q.emoji }}</div>
+          <div class="quick-body">
+            <div class="quick-name" :style="{ color: q.color }">{{ q.name }}</div>
+            <div class="quick-example">{{ q.example }}</div>
           </div>
         </div>
       </div>

@@ -2,8 +2,8 @@
 <template>
   <el-card>
     <!-- 标题与副标题 -->
-    <h2>提交工单</h2>
-    <p style="color: #888">提交后 AI Agent 会自动分析你的故障描述，并返回建议与相似历史工单</p>
+    <h2 style="margin: 0">提交工单</h2>
+    <p class="page-subtitle">描述故障后，AI 会自动完成分类、检索与建议生成</p>
 
     <!-- 提交表单 -->
     <el-form :model="form" label-width="100px" style="max-width: 760px; margin-top: 24px" v-loading="loading">
@@ -36,17 +36,24 @@
     <el-divider v-if="result" />
     <div v-if="result">
       <h3>🤖 AI 分析结果</h3>
-      <p>故障类型：<el-tag>{{ result.fault_type }}</el-tag></p>
+      <p>故障类型：<el-tag>{{ formatFaultType(result.fault_type) }}</el-tag></p>
 
-      <p>初步建议：</p>
-      <el-alert :title="result.suggestion" type="info" :closable="false" show-icon />
+      <el-card class="ai-card" shadow="never" style="margin-top: 12px">
+        <div class="ai-card-head">
+          <span class="ai-badge">AI</span>
+          <span>初步排查建议</span>
+        </div>
+        <div class="ai-card-body">{{ cleanSuggestion(result.suggestion) }}</div>
+      </el-card>
 
       <h4 style="margin-top: 20px">📎 相似历史工单</h4>
       <el-table v-if="result.similar_tickets.length" :data="result.similar_tickets" border size="small">
         <el-table-column prop="id" label="ID" width="60" />
         <el-table-column prop="title" label="标题" />
         <el-table-column prop="content" label="内容片段" show-overflow-tooltip />
-        <el-table-column prop="score" label="相似度" width="100" />
+        <el-table-column label="相似度" width="100">
+          <template #default="{ row }">{{ formatScore(row.score) }}</template>
+        </el-table-column>
       </el-table>
       <el-empty v-else description="暂无相似历史工单" :image-size="60" />
 
@@ -54,7 +61,9 @@
       <el-table v-if="result.similar_knowledge.length" :data="result.similar_knowledge" border size="small">
         <el-table-column prop="title" label="标题" />
         <el-table-column prop="content" label="内容片段" show-overflow-tooltip />
-        <el-table-column prop="score" label="相似度" width="100" />
+        <el-table-column label="相似度" width="100">
+          <template #default="{ row }">{{ formatScore(row.score) }}</template>
+        </el-table-column>
       </el-table>
       <el-empty v-else description="暂无知识库命中" :image-size="60" />
     </div>
@@ -66,6 +75,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { submitTicket, getTicket } from '@/api/ticket'
 import { useRouter } from 'vue-router'
+import { cleanSuggestion, formatFaultType, formatScore } from '@/utils/format'
 
 const router = useRouter()
 
